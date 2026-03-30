@@ -1,0 +1,199 @@
+*localreview.txt*  Annotate code with review comments in Neovim
+
+Author: Antoine
+License: MIT
+Requires: Neovim >= 0.9
+
+==============================================================================
+INTRODUCTION                                            *localreview*
+
+LocalReview lets you annotate code with review comments directly in your
+editor. Like GitHub PR reviews, but local, offline, and stored as JSON files
+alongside the code.
+
+Reviews are stored as hidden `.reviews.json` files next to the source file.
+No external dependencies required.
+
+==============================================================================
+SETUP                                                   *localreview.setup()*
+
+Add to your plugin manager and call setup:
+>lua
+    require("localreview").setup()
+<
+With lazy.nvim:
+>lua
+    {
+      "antoine/localreview.nvim",
+      config = function()
+        require("localreview").setup()
+      end,
+    }
+<
+With custom options:
+>lua
+    require("localreview").setup({
+      keys = {
+        annotate = "<leader>ra",
+        view = "<leader>rv",
+        delete = "<leader>rd",
+        next_review = "]r",
+        prev_review = "[r",
+        telescope = "<leader>rt",
+      },
+      virtual_text = {
+        enabled = true,
+        hl_group = "Comment",
+        stale_hl_group = "LocalReviewStale",
+      },
+      git = {
+        track_commit = true,
+      },
+    })
+<
+To disable default keybindings entirely:
+>lua
+    require("localreview").setup({ keys = false })
+<
+
+==============================================================================
+COMMANDS                                                *localreview-commands*
+
+*:LocalReviewAnnotate*       Add a review comment to the current line.
+                          Supports visual range: select lines, then run
+                          `:'<,'>LocalReviewAnnotate`.
+
+*:LocalReviewView*           View reviews for the current line in a floating
+                          window. Also shows range reviews that cover the
+                          current line.
+
+*:LocalReviewDelete*         Delete a review from the current line. If multiple
+                          reviews exist, a picker is shown.
+
+*:LocalReviewNext*           Jump to the next line with a review.
+
+*:LocalReviewPrev*           Jump to the previous line with a review.
+
+*:LocalReviewTelescope*      Open Telescope picker with all reviews in the
+                          project. Requires telescope.nvim.
+
+==============================================================================
+KEYBINDINGS                                             *localreview-keybindings*
+
+Default keybindings (override via `keys` in setup):
+
+    `<leader>ra`    Annotate current line (normal) or selection (visual)
+    `<leader>rv`    View reviews on current line
+    `<leader>rd`    Delete review on current line
+    `]r`            Jump to next review
+    `[r`            Jump to previous review
+    `<leader>rt`    Telescope review picker
+
+==============================================================================
+CONFIGURATION                                           *localreview-configuration*
+
+All options with their defaults:
+
+`keys`            Table of keybinding overrides, or `false` to disable all
+                default bindings.
+
+`virtual_text.enabled`    (boolean, default: true)
+                        Show virtual text hints on annotated lines.
+
+`virtual_text.hl_group`   (string, default: "Comment")
+                        Highlight group for virtual text.
+
+`virtual_text.stale_hl_group`  (string, default: "LocalReviewStale")
+                             Highlight group for stale review indicators.
+
+`git.track_commit`        (boolean, default: true)
+                        Store git HEAD SHA with reviews and mark stale
+                        reviews when HEAD changes.
+
+==============================================================================
+TELESCOPE                                               *localreview-telescope*
+
+LocalReview includes an optional Telescope extension for project-wide review
+search. Telescope is NOT required for core functionality.
+
+Load the extension:
+>lua
+    require("telescope").load_extension("localreview")
+<
+Then use:
+>vim
+    :Telescope localreview
+<
+Or via the default keybinding `<leader>rt`.
+
+Stale reviews are marked with a sleep indicator in the picker.
+
+==============================================================================
+STALENESS                                               *localreview-staleness*
+
+When `git.track_commit` is enabled (default), each review records the git
+HEAD SHA at creation time. When viewing reviews, if HEAD has changed since
+the review was created, it's marked as "stale" with a distinct highlight
+group (`LocalReviewStale`, linked to `DiagnosticHint` by default).
+
+This helps identify reviews that may no longer apply after code changes.
+
+==============================================================================
+STORAGE                                                 *localreview-storage*
+
+Reviews are stored in hidden JSON files next to the source file:
+
+    `foo.lua`  ->  `.foo.lua.reviews.json`
+
+File format (version 1):
+>json
+    {
+      "version": 1,
+      "reviews": {
+        "42": [
+          {
+            "comment": "Fix this",
+            "timestamp": 1711540800,
+            "end_line": null,
+            "commit": "abc1234..."
+          }
+        ]
+      }
+    }
+<
+Reviews are keyed by start line number (string). Range reviews include an
+`end_line` field. The `commit` field is the git HEAD SHA at creation time
+(null if git tracking is disabled or not in a git repo).
+
+To ignore review files in git, add to `.gitignore`:
+>
+    *.reviews.json
+<
+
+==============================================================================
+KNOWN LIMITATIONS                                       *localreview-limitations*
+
+Line drift ~
+
+Reviews are stored by line number. Within a session, virtual text indicators
+track edits automatically (extmarks move when lines are inserted or deleted
+above them). However, the stored JSON file retains the original line numbers.
+When you reopen the file, reviews appear at their original positions, even if
+the code has shifted.
+
+This is a known trade-off for file-local, dependency-free storage.
+
+==============================================================================
+HEALTH CHECK                                            *localreview-health*
+
+Run `:checkhealth localreview` to verify your environment. The health check
+reports on Neovim version, git availability, and optional telescope.nvim.
+
+==============================================================================
+HIGHLIGHT GROUPS                                        *localreview-highlights*
+
+*LocalReviewStale*           Used for stale review virtual text.
+                          Default: linked to `DiagnosticHint`.
+
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
