@@ -24,7 +24,7 @@ Add to your plugin manager and call setup:
 With lazy.nvim:
 >lua
     {
-      "antoine/localreview.nvim",
+      "aneveux/localreview.nvim",
       config = function()
         require("localreview").setup()
       end,

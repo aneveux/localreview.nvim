@@ -25,7 +25,7 @@ No external dependencies. Pure Lua + Neovim API.
 
 ```lua
 {
-  "antoine/localreview.nvim",
+  "aneveux/localreview.nvim",
   config = function()
     require("localreview").setup()
   end,
