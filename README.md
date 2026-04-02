@@ -103,6 +103,12 @@ require("telescope").load_extension("localreview")
 
 Then use `:Telescope localreview` or the `<leader>rt` keybinding.
 
+## Integrations
+
+### Claude Code
+
+The [thorn](https://github.com/aneveux/claude-garden/tree/master/plugins/thorn) plugin for Claude Code can process and summarize `.reviews.json` files, letting you discuss review annotations with Claude directly in your terminal.
+
 ## Storage Format
 
 Reviews are stored as hidden JSON files next to each source file:
